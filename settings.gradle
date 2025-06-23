@@ -1,0 +1,2 @@
+rootProject.name = 'spring-lms-online'
+include 'api', 'core', 'infra', 'common'
