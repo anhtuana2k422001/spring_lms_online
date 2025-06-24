@@ -14,7 +14,7 @@ import java.util.UUID;
 @Repository
 public interface CourseRepository extends JpaRepository<Course, UUID> {
     Page<Course> findByStatus(CourseStatus status, Pageable pageable);
-    List<Course> findByInstructorId(UUID instructorId);
+    List<Course> findByInstructor_Id(UUID instructorId);
     
     @Query("SELECT c FROM Course c WHERE c.title LIKE %:keyword% OR c.description LIKE %:keyword%")
     Page<Course> searchByKeyword(String keyword, Pageable pageable);

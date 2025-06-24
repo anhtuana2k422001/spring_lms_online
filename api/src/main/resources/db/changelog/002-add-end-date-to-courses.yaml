@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-add-end-date-to-courses
+      author: system
+      changes:
+        - addColumn:
+            tableName: courses
+            columns:
+              - column:
+                  name: end_date
+                  type: TIMESTAMP
+                  constraints:
+                    nullable: true

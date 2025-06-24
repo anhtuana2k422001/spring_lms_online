@@ -4,5 +4,6 @@ public enum EnrollmentStatus {
     ACTIVE,
     COMPLETED,
     DROPPED,
-    SUSPENDED
+    SUSPENDED,
+    CANCELLED
 }

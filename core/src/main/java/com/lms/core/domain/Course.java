@@ -41,6 +41,9 @@ public class Course extends BaseEntity {
     @Column(name = "max_students")
     private Integer maxStudents;
     
+    @Column(name = "thumbnail_url")
+    private String thumbnailUrl;  
+    
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "instructor_id")
     private User instructor;

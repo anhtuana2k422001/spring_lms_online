@@ -4,5 +4,7 @@ public enum AttemptStatus {
     IN_PROGRESS,
     COMPLETED,
     ABANDONED,
-    TIME_EXPIRED
+    TIME_EXPIRED,
+    PASSED,
+    FAILED
 }

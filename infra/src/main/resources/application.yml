@@ -4,13 +4,13 @@ spring:
   
   datasource:
     url: jdbc:postgresql://localhost:5432/lms_db
-    username: ${DB_USERNAME:lms_user}
-    password: ${DB_PASSWORD:lms_password}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:123456}
     driver-class-name: org.postgresql.Driver
   
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
@@ -18,39 +18,38 @@ spring:
         format_sql: true
   
   liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.xml
+    enabled: true
+    change-log: classpath:db/changelog/db.changelog-master.yaml
   
   kafka:
     bootstrap-servers: localhost:9092
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     consumer:
       group-id: lms-group
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-  
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.lms.common.event"
   data:
     redis:
-      port: 6379
       password: ${REDIS_PASSWORD:}
       host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
 
+# JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:mySecretKey}
-  expiration: 86400000 # 24 hours
+  secret: ${JWT_SECRET:myVerySecretJWTKeyThatShouldBeAtLeast256BitsLong}
+  expiration: 86400000 # 24 hours in milliseconds
 
+# Logging
 logging:
   level:
     com.lms: DEBUG

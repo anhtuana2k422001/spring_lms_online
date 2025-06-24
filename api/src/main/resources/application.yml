@@ -1,5 +1,0 @@
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5433/lms_db  # Changed port to 5433
-    username: ${DB_USERNAME:lms_user}
-    password: ${DB_PASSWORD:lms_password}

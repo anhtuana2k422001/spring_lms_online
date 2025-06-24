@@ -2,6 +2,7 @@ package com.lms.api.controller;
 
 import com.lms.api.dto.LoginDto;
 import com.lms.api.dto.UserRegistrationDto;
+import com.lms.api.util.JwtUtil;
 import com.lms.common.response.ApiResponse;
 import com.lms.core.domain.User;
 import com.lms.core.service.UserService;
@@ -12,6 +13,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 @RestController
@@ -21,6 +24,7 @@ public class AuthController {
     
     private final UserService userService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
     
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<String>> register(@Valid @RequestBody UserRegistrationDto registrationDto) {
@@ -42,7 +46,7 @@ public class AuthController {
             User savedUser = userService.createUser(user);
             
             return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("User registered successfully with ID: " + savedUser.getId()));
+                .body(ApiResponse.success("User registered successfully"));
                 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -51,7 +55,7 @@ public class AuthController {
     }
     
     @PostMapping("/login")
-    public ResponseEntity<ApiResponse<String>> login(@Valid @RequestBody LoginDto loginDto) {
+    public ResponseEntity<ApiResponse<Map<String, Object>>> login(@Valid @RequestBody LoginDto loginDto) {
         try {
             Optional<User> userOpt = userService.findByEmail(loginDto.getEmail());
             
@@ -62,41 +66,42 @@ public class AuthController {
             
             User user = userOpt.get();
             
-            // Kiểm tra password
+            // Check  password
             if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(ApiResponse.error("Invalid email or password"));
             }
             
-            return ResponseEntity.ok(
-                ApiResponse.success("Login successful for user: " + user.getFirstName() + " " + user.getLastName())
+            // get role default
+            String roleName = "USER";
+            if (user.getRoles() != null && !user.getRoles().isEmpty()) {
+                roleName = user.getRoles().iterator().next().getName();
+            }
+            
+            // Create JWT token
+            String token = jwtUtil.generateToken(
+                user.getEmail(), 
+                user.getId().toString(), 
+                roleName
             );
+            
+            // Tạo response data
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("token", token);
+            responseData.put("type", "Bearer");
+            responseData.put("user", Map.of(
+                "id", user.getId(),
+                "email", user.getEmail(),
+                "firstName", user.getFirstName(),
+                "lastName", user.getLastName(),
+                "role", roleName
+            ));
+            
+            return ResponseEntity.ok(ApiResponse.success(responseData));
             
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error("Login failed: " + e.getMessage()));
-        }
-    }
-    
-    @GetMapping("/profile/{email}")
-    public ResponseEntity<ApiResponse<User>> getProfile(@PathVariable String email) {
-        try {
-            Optional<User> userOpt = userService.findByEmail(email);
-            
-            if (userOpt.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ApiResponse.error("User not found"));
-            }
-            
-            User user = userOpt.get();
-            // Xóa password khỏi response
-            user.setPassword(null);
-            
-            return ResponseEntity.ok(ApiResponse.success(user));
-            
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Failed to get profile: " + e.getMessage()));
         }
     }
 }
